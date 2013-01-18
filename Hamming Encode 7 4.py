@@ -8,8 +8,9 @@
 import numpy as np
 
 def bmult(a,b):
-    ### binary multiplication of two matrices
-    # No error handling - assumes a x b makes sense!
+    """
+    binary multiplication of two matrices without error handling
+    """
     
     arows = a.shape[0]
     bcolumns = b.shape[1]
@@ -24,8 +25,9 @@ def bmult(a,b):
     return c
     
 def badd(a,b):
-    ### binary addition of two matrices
-    # no error handling
+    """
+    binary addition of two matrices without error handling
+    """
     
     arows = a.shape[0]
     acolumns = a.shape[1]
@@ -37,6 +39,27 @@ def badd(a,b):
             c[x,y] = (a[x,y] + b[x,y]) % 2
                                                 
     return c
+    
+def syndec(h, r):
+    """
+    syndrome decoding of message r using parity check matrix H
+    """
+    
+    # Syndrome to bit flip matrix
+    synbitflip = np.array([[0],[6],[5],[3],[4],[0],[1],[2]])
+    
+    w = r
+    z = bmult(h,r)
+    
+    # Determine syndrome
+    zval = z[0,0]*2**2 + z[1,0]*2**1 + z[2,0]*2**0
+    
+    if zval > 0:                 # there is an error
+        bitf = synbitflip[zval,0]
+        w[bitf,0] = (w[bitf,0]+1) % 2
+    
+    return w
+
 
 # Our array G is [I4 P] where P is the parity matrix
 
@@ -56,10 +79,16 @@ s = np.array([[0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1],
               [0,0,0,0,1,1,1,1,0,0,0,0,1,1,1,1],
               [0,0,1,1,0,0,1,1,0,0,1,1,0,0,1,1],
               [0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1]])
+print "Matrix s - all the possible sources"
+print s, "\n"              
+
 t = bmult(gt, s)
 
 print "Matrix t - all the codewords"
 print t, "\n"
+
+qz = np.zeros([4,3])
+q = np.hstack((i4,qz))           
 
 # Our array H = [-P I3], but -P = P in binary, so H = [P I3]
 # Need to transpose p
@@ -80,22 +109,35 @@ print sbz, "\n"
 
 # (a) r = 1101011
 r = np.array([[1],[1],[0],[1],[0],[1],[1]])
-# error in r - syndrome is 0,1,1 ->flip r4
-r[3,0] = (r[3,0] + 1) % 2
+print "Received message r \n", r
+w = syndec(h,r)
+z = bmult(q,w)
+print "After noise removed w \n", w
+print "Message \n", z, "\n"
 
 # (b) r = 0110110
 r = np.array([[0],[1],[1],[0],[1],[1],[0]])
-# error in r - syndrome is 1,1,1 -> flip r3
-r[2,0] = (r[2,0] + 1) % 2
+print "Received message r \n", r
+w = syndec(h,r)
+z = bmult(q,w)
+print "After noise removed w \n", w
+print "Message \n", z, "\n"
 
 # (c) r = 0100111
 r = np.array([[0],[1],[0],[0],[1],[1],[1]])
-# error in r - syndome is 0, 0, 1 -> flip r7
-r[6,0] = (r[6,0] + 1) % 2
+print "Received message r \n", r
+w = syndec(h,r)
+z = bmult(q,w)
+print "After noise removed w \n", w
+print "Message \n", z, "\n"
 
 # (d) r = 1111111
 r = np.array([[1],[1],[1],[1],[1],[1],[1],[1]])
-# syndrome = 0, 0, 0 => no error
+print "Received message r \n", r
+w = syndec(h,r)
+z = bmult(q,w)
+print "After noise removed w \n", w
+print "Message \n", z, "\n"
 
 # 1.8 prove that there's no case where a block decoding error doesn't lead
 # to a block error
