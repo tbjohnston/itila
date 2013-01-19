@@ -105,42 +105,63 @@ for l in range(1, r.shape[1]):
     print "After noise removed \n", w.view(np.int8)
     print "Message \n", z.view(np.int8), "\n"
 
+# Exercise 1.8 show that whenever two or more bits are flipped in a single
+# block, there is a block decoding error - in other words, that any
+# corruption is not confined to the parity bits.
 
+# Not feeling clever today, so will brute force it.
+# But note with 2+ errors in r1, ... , r4 then there is a block error
+# So consider cases with 0 or 1 errors in r1, ..., r4
+# and 1 to 3 errors (minimum total 2) in r5, r6, r7
 
-# 1.8 prove that there's no case where a block decoding error doesn't lead
-# to a block error
-# essentially, show that errors in 2 of r5, r6, r7 don't flip the third
+# two errors in parity bits
+n = np.array([[0],[0],[0],[0],[1],[1],[0]], dtype=bool)
+n = np.hstack((n,np.array([[0],[0],[0],[0],[1],[0],[1]], dtype=bool)))
+n = np.hstack((n,np.array([[0],[0],[0],[0],[0],[1],[1]], dtype=bool)))
+# one error in message, one in parity
+n = np.hstack((n,np.array([[1],[0],[0],[0],[1],[0],[0]], dtype=bool)))
+n = np.hstack((n,np.array([[1],[0],[0],[0],[0],[1],[0]], dtype=bool)))
+n = np.hstack((n,np.array([[1],[0],[0],[0],[0],[0],[1]], dtype=bool)))          
+n = np.hstack((n,np.array([[0],[1],[0],[0],[1],[0],[0]], dtype=bool))) 
+n = np.hstack((n,np.array([[0],[1],[0],[0],[0],[1],[0]], dtype=bool))) 
+n = np.hstack((n,np.array([[0],[1],[0],[0],[0],[0],[1]], dtype=bool)))         
+n = np.hstack((n,np.array([[0],[0],[1],[0],[1],[0],[0]], dtype=bool))) 
+n = np.hstack((n,np.array([[0],[0],[1],[0],[0],[1],[0]], dtype=bool))) 
+n = np.hstack((n,np.array([[0],[0],[1],[0],[0],[0],[1]], dtype=bool))) 
+n = np.hstack((n,np.array([[0],[0],[0],[1],[1],[0],[0]], dtype=bool))) 
+n = np.hstack((n,np.array([[0],[0],[0],[1],[0],[1],[0]], dtype=bool))) 
+n = np.hstack((n,np.array([[0],[0],[0],[1],[0],[0],[1]], dtype=bool)))
+# three errors in parity bits
+n = np.hstack((n,np.array([[0],[0],[0],[0],[1],[1],[1]], dtype=bool)))
+# one error in message, two in parity
+n = np.hstack((n,np.array([[1],[0],[0],[0],[1],[1],[0]], dtype=bool)))
+n = np.hstack((n,np.array([[1],[0],[0],[0],[1],[0],[1]], dtype=bool)))
+n = np.hstack((n,np.array([[1],[0],[0],[0],[0],[1],[1]], dtype=bool)))          
+n = np.hstack((n,np.array([[0],[1],[0],[0],[1],[1],[0]], dtype=bool))) 
+n = np.hstack((n,np.array([[0],[1],[0],[0],[1],[0],[1]], dtype=bool))) 
+n = np.hstack((n,np.array([[0],[1],[0],[0],[0],[1],[1]], dtype=bool)))         
+n = np.hstack((n,np.array([[0],[0],[1],[0],[1],[1],[0]], dtype=bool))) 
+n = np.hstack((n,np.array([[0],[0],[1],[0],[1],[0],[1]], dtype=bool))) 
+n = np.hstack((n,np.array([[0],[0],[1],[0],[0],[0],[1]], dtype=bool))) 
+n = np.hstack((n,np.array([[0],[0],[0],[1],[1],[1],[0]], dtype=bool))) 
+n = np.hstack((n,np.array([[0],[0],[0],[1],[1],[0],[1]], dtype=bool))) 
+n = np.hstack((n,np.array([[0],[0],[0],[1],[0],[1],[1]], dtype=bool)))
+# one error in message, three in parity
+n = np.hstack((n,np.array([[1],[0],[0],[0],[1],[1],[1]], dtype=bool)))
+n = np.hstack((n,np.array([[0],[1],[0],[0],[1],[1],[1]], dtype=bool)))
+n = np.hstack((n,np.array([[0],[0],[1],[0],[1],[1],[1]], dtype=bool)))
+n = np.hstack((n,np.array([[0],[0],[0],[1],[1],[1],[1]], dtype=bool)))
 
-r56 = np.array([[0],[0],[0],[0],[1],[1],[0]], dtype=bool)
-r57 = np.array([[0],[0],[0],[0],[1],[0],[1]], dtype=bool)
-r67 = np.array([[0],[0],[0],[0],[0],[1],[1]], dtype=bool)
+# 32 different errors
 
-# stack each of these 16 times
+for i in range(0, t.shape[1]):
+    t1 = t[0:4,i]
+    t1 = t1[:,np.newaxis]
+    for j in range(0, n.shape[1]):
+        r1 = np.logical_xor(t[:,i],n[:,j]) # apply noise
+        r1 = r1[:,np.newaxis]              # transpose
+        w = syndec(h,r1)                   # attempt to remove noise
+        z = m2mult(q,w)                    # decode
+        if np.array_equal(t1,z):
+            print "Error: %i in T and %i in N" % (i, j)
 
-for x in range(0, 4):
-    r56 = np.hstack((r56,r56))
-    r57 = np.hstack((r57,r57))
-    r67 = np.hstack((r67,r67))
-    
-# now apply this noise to an array of every codeword
-
-t56 = np.logical_xor(t, r56)
-t57 = np.logical_xor(t, r57)
-t67 = np.logical_xor(t, r67)
-
-# compute the syndromes
-
-syn56 = m2mult(h,t56)
-syn57 = m2mult(h,t57)
-syn67 = m2mult(h,t67)
-
-print "Exercise 1.8 - what happens when noise causes two bits to be flipped?"
-print "Test for all possible sources."
-print "Determine the syndromes - noise in 5 & 6 causes us to flip r2"
-print syn56.view(np.int8), "\n"
-print "noise in 5 & 6 causes us to flip r1"
-print syn57.view(np.int8), "\n"
-print "noise in 6 & 7 causes us to flip r4"
-print syn67.view(np.int8), "\n"
-
-# Success - syndrome is always 110, 101, 011 -> flip r2, r1, r4
