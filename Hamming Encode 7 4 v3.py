@@ -4,6 +4,7 @@
 # Modified 16 Jan 2013
 # Modified 17 Jan 2013 - add syndec, better output
 # Modified 18 Jan 2013 - use boolean operators
+# Modified 20 Jan 2013 - clean up m2mult 
 #
 # This version does right multiplication -> t = G(T)s, where
 # G is the generator matrix of the code
@@ -15,12 +16,8 @@ def m2mult(a,b):
     """
     modulo-2 multiplication of two boolean arrays
     """
-    
-    c = np.asarray([reduce(operator.xor, np.logical_and(a[x,:],b[:,y]))
-         for x in range(0,a.shape[0]) for y in range (0, b.shape[1])])
-    c.shape = (a.shape[0], b.shape[1])
-         
-    return c
+
+    return np.mod(np.dot(a.astype('u1'), b), 2).astype(bool)
     
 def syndec(h, r):
     """
@@ -94,7 +91,7 @@ rt = np.array([[1,1,0,1,0,1,1],
                [1,1,1,1,1,1,1]], dtype=bool)
 r = rt.transpose()
 
-for l in range(1, r.shape[1]):
+for l in range(0, r.shape[1]):
     m = r[:,l]           # get a slice of r
     print "Received message r \n", "", m.view(np.int8)
     m = m[:,np.newaxis]  # convert to columnar form
