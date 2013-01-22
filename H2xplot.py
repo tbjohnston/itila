@@ -3,10 +3,6 @@
 
 import pylab
 import numpy as np
-
-
-def f(a):
-    return 1./(1+np.exp(-a))
     
 def H2(a):
     log2 = np.log(2)
@@ -14,11 +10,9 @@ def H2(a):
     
 x = np.linspace(.001, .999, 200)
 
-
 pylab.plot(x, H2(x), label='H2(x)')
-# pylab.plot(x, tanh(x), label='tanh(x)')
-pylab.ylabel('Bits')
-pylab.xlabel('x')
-pylab.title('Sketch of H2(x) = -p log2(p) - (1-p) log2(1-p)')
+pylab.ylabel('H2(X), measured in bits')
+pylab.xlabel('Pr(X = 1)')
+pylab.title('Sketch of H2(X) = -p log2(p) - (1-p) log2(1-p) where p = Pr(X=1)')
 pylab.legend()
 pylab.show()
