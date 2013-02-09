@@ -5,6 +5,7 @@ import numpy as np
 
 results = numpy.zeros((101,606))
 
+
 # seed the first roll
 for dieface in range(1,7):
     results[1,dieface] += 1
@@ -20,14 +21,17 @@ for dienumber in range (2,101):
             results[dienumber,i+dieface] += j
             # print "Dienumber, i+dieface: %i, %i, R[dn,i+df] %i" % (dienumber,
             #      i+dieface, results[dienumber, i+dieface])
-            
-ymax = np.amax(results[100,:])
+
+factor = 1./(6**100)            
+fresults = results * factor
+
+ymax = np.amax(fresults[100,:])
 ylim(0,ymax*1.1)
 
-xlim = (100,600)
+xlim = (100,601)
 
-plot(results[100,:])
-ylabel('Number of throws of 100 dice')
+plot(fresults[100,:])
+ylabel('Probability of result from throws of 100 dice')
 xlabel('Sum of throws of 100 dice')
-title('Frequency distribution of the sum of 100 dice')
+title('Probability distribution of the sum of 100 dice')
 show()
